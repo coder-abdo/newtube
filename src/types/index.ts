@@ -1,5 +1,11 @@
 import { LucideIcon } from "lucide-react";
 import { ReactNode } from "react";
+import {
+  VideoAssetReadyWebhookEvent,
+  VideoAssetCreatedWebhookEvent,
+  VideoAssetErroredWebhookEvent,
+  VideoAssetTrackReadyWebhookEvent,
+} from "@mux/mux-node/resources/webhooks";
 
 type TlayoutProps = {
   children: ReactNode;
@@ -29,6 +35,11 @@ type StudioUploaderProps = {
   endpoint?: string | null;
   onSuccess: () => void;
 };
+type WebhookEvent =
+  | VideoAssetTrackReadyWebhookEvent
+  | VideoAssetErroredWebhookEvent
+  | VideoAssetCreatedWebhookEvent
+  | VideoAssetReadyWebhookEvent;
 export type {
   TlayoutProps,
   TItem,
@@ -36,4 +47,5 @@ export type {
   HomePageProps,
   ResponsiveDialogProps,
   StudioUploaderProps,
+  WebhookEvent,
 };
