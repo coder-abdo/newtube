@@ -5,6 +5,7 @@ import {
   VideoAssetCreatedWebhookEvent,
   VideoAssetErroredWebhookEvent,
   VideoAssetTrackReadyWebhookEvent,
+VideoAssetDeletedWebhookEvent
 } from "@mux/mux-node/resources/webhooks";
 
 type TlayoutProps = {
@@ -39,7 +40,8 @@ type WebhookEvent =
   | VideoAssetTrackReadyWebhookEvent
   | VideoAssetErroredWebhookEvent
   | VideoAssetCreatedWebhookEvent
-  | VideoAssetReadyWebhookEvent;
+  | VideoAssetReadyWebhookEvent
+  | VideoAssetDeletedWebhookEvent;
 export type {
   TlayoutProps,
   TItem,

@@ -1,5 +1,5 @@
 "use client";
-
+import { format } from "date-fns";
 import { InfiniteScroll } from "@/components/infinite-scroll";
 import {
   Table,
@@ -9,11 +9,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { snakeCaseToTitle } from "@/lib/utils";
 import { VideoThumbnail } from "@/modules/videos/ui/components/video-thumbnail";
 import { trpc } from "@/trpc/client";
 import Link from "next/link";
 import { Suspense } from "react";
 import { ErrorBoundary } from "react-error-boundary";
+import { Globe2Icon, LockIcon } from "lucide-react";
 
 export const VideosSection = () => {
   const [data, query] = trpc.studio.getMany.useSuspenseInfiniteQuery(
@@ -56,13 +58,29 @@ export const VideosSection = () => {
                             <div className="relative aspect-video w-36 shrink-0">
                               <VideoThumbnail
                                 thumbnailUrl={video.thumbnailUrl}
+                                title={video.title}
+                                previewUrl={video.previewUrl}
+                                duration={video.duration ?? 0}
                               />
+                            </div>
+                            <div className="flex flex-col overflow-hidden gap-y-1">
+                              <span className="line-clamp-1 text-sm">{video.title}</span>
+                              <span className="line-clamp-1 text-xs text-muted-foreground">{video.description ?? "No description"}</span>
                             </div>
                           </div>
                         </TableCell>
-                        <TableCell>visibility</TableCell>
-                        <TableCell>status</TableCell>
-                        <TableCell>date</TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            {video.visibility === "private" ? <LockIcon className="size-4 mr-2" /> : <Globe2Icon className="size-4 mr-2" />}
+                            {snakeCaseToTitle(video.visibility)}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                          {snakeCaseToTitle(video.muxStatus || "error")}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-sm truncate">{format(new Date(video.createdAt), "d MMM yyyy")}</TableCell>
                         <TableCell>views</TableCell>
                         <TableCell>comments</TableCell>
                         <TableCell>likes</TableCell>
