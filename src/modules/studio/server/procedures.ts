@@ -3,9 +3,26 @@ import { db } from "@/db";
 import { videos } from "@/db/schema";
 import { createTRPCRouter, protectedProcdure } from "@/trpc/init";
 import { and, desc, eq, lt, or } from "drizzle-orm";
-import { cursorTo } from "readline";
+import { TRPCError } from "@trpc/server";
 
 export const studioRouter = createTRPCRouter({
+  getOne: protectedProcdure
+    .input(z.object({ id: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      const { id: userId } = ctx.user;
+      const { id } = input;
+      const [video] = await db
+        .select()
+        .from(videos)
+        .where(and(eq(videos.userId, userId), eq(videos.id, id)));
+      if (!video) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Video not found",
+        });
+      }
+      return video;
+    }),
   getMany: protectedProcdure
     .input(
       z.object({
@@ -16,7 +33,7 @@ export const studioRouter = createTRPCRouter({
           })
           .nullish(),
         limit: z.number().min(1).max(100),
-      }),
+      })
     )
     .query(async ({ ctx, input }) => {
       const { cursor, limit } = input;
@@ -32,11 +49,11 @@ export const studioRouter = createTRPCRouter({
                   lt(videos.updatedAt, cursor.updatedAt),
                   and(
                     eq(videos.updatedAt, cursor.updatedAt),
-                    lt(videos.id, cursor.id),
-                  ),
+                    lt(videos.id, cursor.id)
+                  )
                 )
-              : undefined,
-          ),
+              : undefined
+          )
         )
         .orderBy(desc(videos.updatedAt), desc(videos.id))
         .limit(limit + 1);

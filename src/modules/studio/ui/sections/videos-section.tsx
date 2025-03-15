@@ -16,6 +16,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { Globe2Icon, LockIcon } from "lucide-react";
+import { VideoSectionFallback } from "./video-section-fallback";
 
 export const VideosSection = () => {
   const [data, query] = trpc.studio.getMany.useSuspenseInfiniteQuery(
@@ -24,10 +25,10 @@ export const VideosSection = () => {
     },
     {
       getNextPageParam: (lastPage) => lastPage.nextCursor,
-    },
+    }
   );
   return (
-    <Suspense fallback={<p>Loading...</p>}>
+    <Suspense fallback={<VideoSectionFallback />}>
       <ErrorBoundary fallback={<p>Something went wrong</p>}>
         <div>
           <div className="border-y">
@@ -64,23 +65,33 @@ export const VideosSection = () => {
                               />
                             </div>
                             <div className="flex flex-col overflow-hidden gap-y-1">
-                              <span className="line-clamp-1 text-sm">{video.title}</span>
-                              <span className="line-clamp-1 text-xs text-muted-foreground">{video.description ?? "No description"}</span>
+                              <span className="line-clamp-1 text-sm">
+                                {video.title}
+                              </span>
+                              <span className="line-clamp-1 text-xs text-muted-foreground">
+                                {video.description ?? "No description"}
+                              </span>
                             </div>
                           </div>
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
-                            {video.visibility === "private" ? <LockIcon className="size-4 mr-2" /> : <Globe2Icon className="size-4 mr-2" />}
+                            {video.visibility === "private" ? (
+                              <LockIcon className="size-4 mr-2" />
+                            ) : (
+                              <Globe2Icon className="size-4 mr-2" />
+                            )}
                             {snakeCaseToTitle(video.visibility)}
                           </div>
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
-                          {snakeCaseToTitle(video.muxStatus || "error")}
+                            {snakeCaseToTitle(video.muxStatus || "error")}
                           </div>
                         </TableCell>
-                        <TableCell className="text-sm truncate">{format(new Date(video.createdAt), "d MMM yyyy")}</TableCell>
+                        <TableCell className="text-sm truncate">
+                          {format(new Date(video.createdAt), "d MMM yyyy")}
+                        </TableCell>
                         <TableCell>views</TableCell>
                         <TableCell>comments</TableCell>
                         <TableCell>likes</TableCell>

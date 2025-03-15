@@ -1,5 +1,10 @@
 import { relations } from "drizzle-orm";
 import {
+  createInsertSchema,
+  createSelectSchema,
+  createUpdateSchema,
+} from "drizzle-zod";
+import {
   integer,
   pgEnum,
   pgTable,
@@ -20,7 +25,7 @@ export const users = pgTable(
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
     // TODO: add banner field
   },
-  (t) => [uniqueIndex("clerk_id_idx").on(t.clerkId)],
+  (t) => [uniqueIndex("clerk_id_idx").on(t.clerkId)]
 );
 
 export const categories = pgTable(
@@ -32,9 +37,12 @@ export const categories = pgTable(
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
   },
-  (t) => [uniqueIndex("name-idx").on(t.name)],
+  (t) => [uniqueIndex("name-idx").on(t.name)]
 );
-export const videoVisibility = pgEnum("video_visibility", ["public", "private"]);
+export const videoVisibility = pgEnum("video_visibility", [
+  "public",
+  "private",
+]);
 // video pgTable
 export const videos = pgTable("videos", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -61,7 +69,9 @@ export const videos = pgTable("videos", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
-
+export const videooInsertSchema = createInsertSchema(videos);
+export const videooUpdateSchema = createUpdateSchema(videos);
+export const videooSelectSchema = createSelectSchema(videos);
 export const userRelations = relations(users, ({ many }) => ({
   videos: many(videos),
 }));
