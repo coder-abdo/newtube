@@ -9,8 +9,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreVerticalIcon, TrashIcon } from "lucide-react";
-import { Suspense } from "react";
+import {
+  CopyCheckIcon,
+  CopyIcon,
+  MoreVerticalIcon,
+  TrashIcon,
+} from "lucide-react";
+import { Suspense, useState } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -33,6 +38,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
+import { VideoPlayer } from "@/modules/videos/ui/components/video-player";
+import Link from "next/link";
 
 type FormSectionProps = {
   videoId: string;
@@ -57,6 +64,15 @@ export const FormSection = ({ videoId }: FormSectionProps) => {
   });
   const onSubmit = (values: z.infer<typeof videooUpdateSchema>) => {
     update.mutate(values);
+  };
+  const fullUrl = `${
+    process.env.VERCEL_URL || "http://localhost:3000"
+  }/videos/${videoId}`;
+  const [isCopied, setIsCopied] = useState(false);
+  const onCopy = () => {
+    navigator.clipboard.writeText(fullUrl);
+    setIsCopied(true);
+    setTimeout(() => setIsCopied(false), 2000);
   };
   return (
     <Suspense fallback={<div>Loading...</div>}>
@@ -155,6 +171,42 @@ export const FormSection = ({ videoId }: FormSectionProps) => {
                     </FormItem>
                   )}
                 />
+              </div>
+              <div className="flex flex-col gap-y-8 lg:col-span-2">
+                <div className="flex flex-col gap-4 rounded-xl overflow-hidden h-fit bg-[#f9f9f9]">
+                  <div className="aspec-video overflow-hidden relative">
+                    <VideoPlayer
+                      playbackId={video.muxPlaybackId}
+                      posterUrl={video.thumbnailUrl}
+                    />
+                  </div>
+                  <div className="p-4 flex flex-col gap-y-6">
+                    <div className="flex justify-between items-center gap-x-2">
+                      <div className="flex flex-col gap-y-1">
+                        <p className="text-xs text-muted-foreground">
+                          Video link
+                        </p>
+                        <div className="flex items-center gap-x-2">
+                          <Link href={`/videos/${video.id}`}>
+                            <span className="text-sm line-clamp-1 text-blue-500">
+                              {fullUrl}
+                            </span>
+                          </Link>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="shrink-0"
+                            type="button"
+                            onClick={onCopy}
+                            disabled={isCopied}
+                          >
+                            {isCopied ? <CopyCheckIcon /> : <CopyIcon />}
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </form>
