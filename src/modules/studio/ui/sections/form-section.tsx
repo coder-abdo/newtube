@@ -12,6 +12,8 @@ import {
 import {
   CopyCheckIcon,
   CopyIcon,
+  Globe2Icon,
+  LockIcon,
   MoreVerticalIcon,
   TrashIcon,
 } from "lucide-react";
@@ -40,19 +42,33 @@ import {
 import { toast } from "sonner";
 import { VideoPlayer } from "@/modules/videos/ui/components/video-player";
 import Link from "next/link";
+import { snakeCaseToTitle } from "@/lib/utils";
+import { useRouter } from "next/navigation";
 
 type FormSectionProps = {
   videoId: string;
 };
 
 export const FormSection = ({ videoId }: FormSectionProps) => {
+  const router = useRouter();
   const utils = trpc.useUtils();
   const [video] = trpc.studio.getOne.useSuspenseQuery({ id: videoId });
   const [categories] = trpc.categories.getMany.useSuspenseQuery();
+  const remove = trpc.videos.remove.useMutation({
+    onSuccess: () => {
+      utils.studio.getMany.invalidate();
+      toast.success("Video deleted successfully");
+      router.push("/studio");
+    },
+    onError: () => {
+      toast.error("Failed to delete video");
+    },
+  });
   const update = trpc.videos.update.useMutation({
     onSuccess: () => {
       utils.studio.getOne.invalidate({ id: videoId });
       utils.categories.getMany.invalidate();
+      toast.success("Video updated successfully");
     },
     onError: () => {
       toast.error("Failed to update video");
@@ -97,7 +113,9 @@ export const FormSection = ({ videoId }: FormSectionProps) => {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => remove.mutate({ id: videoId })}
+                    >
                       <TrashIcon className="mr-2 size-4" />
                       Delete
                     </DropdownMenuItem>
@@ -205,8 +223,73 @@ export const FormSection = ({ videoId }: FormSectionProps) => {
                         </div>
                       </div>
                     </div>
+                    {/* video status */}
+                    <div className="flex justify-between items-center">
+                      <div className="flex flex-col gap-y-1">
+                        <p className="text-muted-foreground text-xs">
+                          Video status
+                        </p>
+                        <p className="text-sm">
+                          {snakeCaseToTitle(video.muxStatus ?? "preparing")}
+                        </p>
+                      </div>
+                    </div>
+                    {/* video track */}
+                    <div className="flex justify-between items-center">
+                      <div className="flex flex-col gap-y-1">
+                        <p className="text-muted-foreground text-xs">
+                          Subtitle status
+                        </p>
+                        <p className="text-sm">
+                          {snakeCaseToTitle(video.muxTrackStatus ?? "no_audio")}
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </div>
+                {/* visibilty  */}
+                <FormField
+                  control={form.control}
+                  name="visibility"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Visibility</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value ?? undefined}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select visibility" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {[
+                            {
+                              name: "public",
+                              icon: <Globe2Icon className="size-4" />,
+                            },
+                            {
+                              name: "private",
+                              icon: <LockIcon className="size-4" />,
+                            },
+                          ].map((visibility) => (
+                            <SelectItem
+                              key={visibility.name}
+                              value={visibility.name}
+                            >
+                              <div className="flex items-center gap-x-2">
+                                {visibility.icon}
+                                {visibility.name}
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
             </div>
           </form>
